@@ -125,3 +125,62 @@ resource "aws_route" "mayur_route" {
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.gw.id
 }
+
+#------------------------ IMPLIMENTING ASG ---------------------------
+
+
+# implimenting ASG 
+
+# Creating a Launch Configuration for ASG
+resource "aws_launch_configuration" "main" {
+  name = "may_launch_config"
+  image_id = "ami-06d4b7182ac3480fa"
+  instance_type = var.instance_type
+  key_name = var.key_name
+
+}
+
+
+# Auto Scaling Group
+resource "aws_autoscaling_group" "may_asg" {
+  name                 = "may-autoscale_group"
+  desired_capacity     = 1
+  max_size             = 3
+  min_size             = 1
+  vpc_zone_identifier  = [aws_subnet.publicsubnet2a.id, aws_subnet.publicsubnet2b.id, aws_subnet.publicsubnet2c.id]
+  health_check_type    = "EC2"
+  health_check_grace_period = 30
+  force_delete         = true
+
+  launch_configuration = aws_launch_configuration.main.id
+
+  tag {
+    key                 = "name"
+    value               = "may_asg"
+    propagate_at_launch = true
+  }
+}
+
+# Auto Scaling Policy for CPU Usage
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "may_scale_up_policy"
+  scaling_adjustment    = 1
+  adjustment_type       = "ChangeInCapacity"
+  cooldown              = 30
+  autoscaling_group_name = aws_autoscaling_group.may_asg.name
+}
+
+resource "aws_cloudwatch_metric_alarm" "cpu_alarm_high" {
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 30
+  statistic           = "Average"
+  threshold           = 5 # percentage of usage
+  alarm_description   = "Scale up when CPU is high"
+  alarm_name          = "scale_up_when_cpu_high"
+  actions_enabled     = true
+
+  alarm_actions = [aws_autoscaling_policy.scale_up.arn]
+}
