@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "this" {
-  ami                     = "ami-06d4b7182ac3480fa"
+  ami                     = "ami-0e83be366243f524a"
   instance_type           = var.instance_type
   key_name                = var.key_name
   associate_public_ip_address = true
@@ -134,7 +134,7 @@ resource "aws_route" "mayur_route" {
 # Creating a Launch Configuration for ASG
 resource "aws_launch_configuration" "main" {
   name = "may_launch_config"
-  image_id = "ami-06d4b7182ac3480fa"
+  image_id = "ami-0e83be366243f524a"
   instance_type = var.instance_type
   key_name = var.key_name
 
