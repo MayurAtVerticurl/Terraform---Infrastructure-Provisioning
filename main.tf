@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "this" {
-  ami                     = "ami-089c26792dcb1fbd4"
+  ami                     = "ami-06d4b7182ac3480fa"
   instance_type           = var.instance_type
   key_name                = var.key_name
   associate_public_ip_address = true
